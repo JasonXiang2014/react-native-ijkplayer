@@ -4,3 +4,6 @@ node_modules
 ios/RCTTTLive.xcodeproj/xcuserdata
 ios/RCTTTLive.xcodeproj/project.xcworkspace
 .DS_Store
+android/build
+ios/build
+IJKMediaFramework.framework
