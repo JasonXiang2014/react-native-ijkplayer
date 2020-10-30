@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		283E522C207CCB7100BD2339 /* IJKMediaFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 283E522B207CCB7100BD2339 /* IJKMediaFramework.framework */; };
 		4107014D1ACB732B00C6AA39 /* RCTIJKPlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 410701481ACB732B00C6AA39 /* RCTIJKPlayer.m */; };
 		4107014E1ACB732B00C6AA39 /* RCTIJKPlayerManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4107014A1ACB732B00C6AA39 /* RCTIJKPlayerManager.m */; };
-		F4E76B921D5ADDEC006CE12F /* IJKMediaFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F4CE41421D4B34B300F505CA /* IJKMediaFramework.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,12 +25,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		283E522B207CCB7100BD2339 /* IJKMediaFramework.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = IJKMediaFramework.framework; sourceTree = "<group>"; };
 		4107012F1ACB723B00C6AA39 /* libRCTIJKPlayer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRCTIJKPlayer.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		410701471ACB732B00C6AA39 /* RCTIJKPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTIJKPlayer.h; sourceTree = "<group>"; };
 		410701481ACB732B00C6AA39 /* RCTIJKPlayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTIJKPlayer.m; sourceTree = "<group>"; };
 		410701491ACB732B00C6AA39 /* RCTIJKPlayerManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RCTIJKPlayerManager.h; sourceTree = "<group>"; };
 		4107014A1ACB732B00C6AA39 /* RCTIJKPlayerManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RCTIJKPlayerManager.m; sourceTree = "<group>"; };
-		F4CE41421D4B34B300F505CA /* IJKMediaFramework.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = IJKMediaFramework.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,7 +38,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F4E76B921D5ADDEC006CE12F /* IJKMediaFramework.framework in Frameworks */,
+				283E522C207CCB7100BD2339 /* IJKMediaFramework.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -48,7 +48,7 @@
 		410701241ACB719800C6AA39 = {
 			isa = PBXGroup;
 			children = (
-				F4CE41421D4B34B300F505CA /* IJKMediaFramework.framework */,
+				283E522B207CCB7100BD2339 /* IJKMediaFramework.framework */,
 				410701471ACB732B00C6AA39 /* RCTIJKPlayer.h */,
 				410701481ACB732B00C6AA39 /* RCTIJKPlayer.m */,
 				410701491ACB732B00C6AA39 /* RCTIJKPlayerManager.h */,
@@ -184,6 +184,10 @@
 					"$(SRCROOT)/../../react-native/React/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = "-ObjC";
@@ -231,6 +235,10 @@
 					"$(SRCROOT)/../../react-native/React/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.2;
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";

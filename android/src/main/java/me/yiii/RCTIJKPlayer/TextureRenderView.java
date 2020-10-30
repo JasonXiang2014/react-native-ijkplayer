@@ -48,6 +48,7 @@ public class TextureRenderView extends TextureView implements IRenderView {
     private MeasureHelper mMeasureHelper;
     private int widthMeasureSpec, heightMeasureSpec;
 
+
     public TextureRenderView(Context context) {
         super(context);
         initView(context);

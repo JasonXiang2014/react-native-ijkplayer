@@ -63,6 +63,14 @@ public final class MeasureHelper {
         mVideoRotationDegree = videoRotationDegree;
     }
 
+    public int getVideoWidth() {
+        return mVideoWidth;
+    }
+
+    public int getVideoHeight() {
+        return mVideoHeight;
+    }
+
     /**
      * Must be called by View.onMeasure(int, int)
      *

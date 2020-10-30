@@ -4,21 +4,27 @@
 
 package me.yiii.RCTIJKPlayer;
 
-import android.util.Log;
-
-
 public class RCTIJKPlayer {
 
-    private static final RCTIJKPlayer ourInstance = new RCTIJKPlayer();
+    private static  RCTIJKPlayer ourInstance = new RCTIJKPlayer();
     private RCTIJKPlayerView mIJKPlayerView;
 
 
     public static RCTIJKPlayer getInstance() {
-        return ourInstance;
+        if(ourInstance != null){
+            return ourInstance ;
+        }
+        ourInstance = new RCTIJKPlayer();
+        return  ourInstance ;
     }
 
     public static RCTIJKPlayerView getViewInstance() {
-        return ourInstance.mIJKPlayerView;
+
+        if(ourInstance != null){
+            return  ourInstance.mIJKPlayerView;
+        }
+        ourInstance = new RCTIJKPlayer();
+        return  ourInstance.mIJKPlayerView;
     }
 
     public void setIJKPlayerView(RCTIJKPlayerView mIJKPlayerView) {

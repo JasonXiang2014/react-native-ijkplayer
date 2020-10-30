@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import RCTIJKPlayer from './index';
 var {height, width} = Dimensions.get('window');
-var left = 0, top = 0;
+var left            = 0, top = 0;
 // height = height/2;
 // width = width/2;
 console.log("width, height", width, height);
@@ -24,56 +24,56 @@ const iconSize = 120;
 
 const styles = StyleSheet.create({
     container: {
-        top: 100,
+        top : 100,
         left: 100,
     },
     controllerView: {
         position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top     : 0,
+        left    : 0,
+        right   : 0,
+        bottom  : 0,
     },
     player: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        position       : 'absolute',
+        top            : 0,
+        left           : 0,
+        right          : 0,
+        bottom         : 0,
         backgroundColor: 'rgba(0,0,0,1)',
     },
     mediaBtnView: {
         // position: 'absolute',
-        flex: 4,
+        flex          : 4,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems    : 'center',
     },
     controller: {
         // flex: 1,
         // opacity: this.state.fadeAnim,
     },
     sliderView: {
-        flex: 1,
+        flex           : 1,
         backgroundColor: 'rgba(0,0,0,0.8)',
-        justifyContent: 'center',
+        justifyContent : 'center',
     },
     btn: {
         backgroundColor: 'transparent',
-        position: 'absolute',
-        justifyContent: 'center',
-        alignItems: 'center',
-        top: Math.round(height/2 - iconSize/2),
-        left: Math.round(width/2 - iconSize/2),
+        position       : 'absolute',
+        justifyContent : 'center',
+        alignItems     : 'center',
+        top            : Math.round(height/2 - iconSize/2),
+        left           : Math.round(width/2 - iconSize/2),
     },
     progressView: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        flex: 1,
-        flexDirection: 'column',
-        alignItems: 'center',
+        position      : 'absolute',
+        top           : 0,
+        left          : 0,
+        right         : 0,
+        bottom        : 0,
+        flex          : 1,
+        flexDirection : 'column',
+        alignItems    : 'center',
         justifyContent: 'center',
     },
     slider: {
@@ -83,26 +83,26 @@ const styles = StyleSheet.create({
 
 export default class RCTIJKPlayerWithController extends React.Component {
     state = {
-        videoWidth: 0,
+        videoWidth : 0,
         videoHeight: 0,
-        rotation: 0,
-        top: 0,
-        left: 0,
-        width: 0,
-        height: 0,
+        rotation   : 0,
+        top        : 0,
+        left       : 0,
+        width      : 0,
+        height     : 0,
     };
 
     constructor(props) {
         super(props);
         this.rctijkplayer = null;
         this.state.height = this.props.height || height;
-        this.state.width = this.props.width || width;
-        this.state.left = this.props.left || 0;
-        this.state.top = this.props.top || 0;
+        this.state.width  = this.props.width || width;
+        this.state.left   = this.props.left || 0;
+        this.state.top    = this.props.top || 0;
         Object.assign(this.state, {
             playBackInfo: {
             },
-            fadeAnim: new Animated.Value(1),
+            fadeAnim     : new Animated.Value(1),
             hasController: false,
         });
         this.progressIcon = this.renderProgressView();
@@ -170,9 +170,9 @@ export default class RCTIJKPlayerWithController extends React.Component {
     start(options) {
         let {width, height, rotation} = options;
         this.setState({
-            videoWidth: width,
+            videoWidth : width,
             videoHeight: height,
-            rotation: rotation,
+            rotation   : rotation,
         });
         this.rctijkplayer.start(options);
     }
@@ -181,38 +181,38 @@ export default class RCTIJKPlayerWithController extends React.Component {
         var progress_view;
         if (Platform.OS == 'ios') {
             progress_view = (<ActivityIndicatorIOS
-                             animating={true}
-                             style={[]}
-                             size="large"
-                             color="#000fff"
+                             animating = {true}
+                             style     = {[]}
+                             size      = "large"
+                             color     = "#000fff"
                              />)
         } else {
             progress_view = (<ProgressBarAndroid
-                             style={[]}
-                             styleAttr="Small"
+                             style     = {[]}
+                             styleAttr = "Small"
                              />)
         }
         return progress_view
     }
 
     getMediaBtn() {
-        let top = Math.round(this.state.height/2 - iconSize/2);
+        let top  = Math.round(this.state.height/2 - iconSize/2);
         let left = Math.round(this.state.width/2 - iconSize/2);
 
-        let playIcon = (<Icon name="play-circle" size={iconSize} color="#1E5C98" style={[styles.btn, {top: top, left: left}]} onPress={this.resumePause.bind(this)}/>)
+        let playIcon  = (<Icon name="play-circle" size={iconSize} color="#1E5C98" style={[styles.btn, {top: top, left: left}]} onPress={this.resumePause.bind(this)}/>)
         let pauseIcon = (<Icon name="pause-circle" size={iconSize} color="#1E5C98" style={[styles.btn, {top: top, left: left}]} onPress={this.resumePause.bind(this)}/>)
 
         switch(this.state.playBackInfo.playbackState) {
-        case RCTIJKPlayer.PlayBackState.IJKMPMoviePlaybackStateStopped:
+        case RCTIJKPlayer.PlayBackState.IJKMPMoviePlaybackStateStopped: 
             return playIcon;
             break;
-        case RCTIJKPlayer.PlayBackState.IJKMPMoviePlaybackStatePlaying:
+        case RCTIJKPlayer.PlayBackState.IJKMPMoviePlaybackStatePlaying: 
             return pauseIcon;
             break;
-        case RCTIJKPlayer.PlayBackState.IJKMPMoviePlaybackStatePaused:
+        case RCTIJKPlayer.PlayBackState.IJKMPMoviePlaybackStatePaused: 
             return playIcon;
             break;
-        default:
+        default: 
             break;
         }
     }
@@ -222,20 +222,20 @@ export default class RCTIJKPlayerWithController extends React.Component {
             return;
         }
         return (<Animated.View
-                style={{flex: 1, opacity: this.state.fadeAnim}}
+                style = {{flex: 1, opacity: this.state.fadeAnim}}
                 >
                 <View style={styles.mediaBtnView}>
                 </View>
                 {this.getMediaBtn()}
                 <View style={styles.sliderView}>
                 <Slider
-                style={styles.slider}
+                style = {styles.slider}
                 // maximumTrackTintColor="purple"
                 // minimumTrackTintColor="red"
-                maximumValue={this.state.playBackInfo.duration || 0}
-                value={this.state.playBackInfo.currentPlaybackTime || 0}
-                onValueChange={(value) => {this.onValueChange(value)}}
-                onSlidingComplete={(value) => {this.onSlidingComplete(value)}}
+                maximumValue      = {this.state.playBackInfo.duration || 0}
+                value             = {this.state.playBackInfo.currentPlaybackTime || 0}
+                onValueChange     = {(value) => {this.onValueChange(value)}}
+                onSlidingComplete = {(value) => {this.onSlidingComplete(value)}}
                 />
                 </View>
                 </Animated.View>
@@ -280,49 +280,49 @@ export default class RCTIJKPlayerWithController extends React.Component {
     render() {
         let playerStyle;
         if (Platform.OS=='ios' && this.state.rotation && this.state.videoWidth && this.state.videoHeight) {
-            playerStyle = {};
+            playerStyle           = {};
             playerStyle.transform = [{
                 rotateZ: `${this.state.rotation}deg`,
             }];
-            let videoWidth = this.state.videoWidth;
+            let videoWidth  = this.state.videoWidth;
             let videoHeight = this.state.videoHeight;
-            let videoRatio = videoWidth/videoHeight;
-            let viewRatio = this.state.width/this.state.height;
+            let videoRatio  = videoWidth/videoHeight;
+            let viewRatio   = this.state.width/this.state.height;
             let logicWidth, logicHeight;
             if (videoRatio == viewRatio) {
-                logicWidth = this.state.width;
+                logicWidth  = this.state.width;
                 logicHeight = this.state.height;
             } else if (videoRatio < viewRatio) {
                 logicHeight = this.state.height;
-                logicWidth = videoRatio * logicHeight;
+                logicWidth  = videoRatio * logicHeight;
             } else {
-                logicWidth = this.state.width;
+                logicWidth  = this.state.width;
                 logicHeight = logicWidth/ videoRatio;
             }
             if (this.state.rotation == 180) {
-                playerStyle.width = logicWidth;
+                playerStyle.width  = logicWidth;
                 playerStyle.height = logicHeight;
             } else {
-                playerStyle.width = logicHeight;
+                playerStyle.width  = logicHeight;
                 playerStyle.height = logicWidth;
             }
         } else {
             playerStyle = styles.player;
         }
         return (<View
-                style={[styles.container, {left: this.state.left, top: this.state.top, width: this.state.width, height: this.state.height, justifyContent: 'center', alignItems: 'center'}]}
+                style = {[styles.container, {left: this.state.left, top: this.state.top, width: this.state.width, height: this.state.height, justifyContent: 'center', alignItems: 'center'}]}
                 >
                 <RCTIJKPlayer
                 ref={(rctijkplayer) => {
                     this.rctijkplayer = rctijkplayer;
                 }}
-                onPlayBackInfo={(e) => this.onPlayBackInfo(e)}
-                style={[playerStyle]}
+                onPlayBackInfo = {(e) => this.onPlayBackInfo(e)}
+                style          = {[playerStyle]}
                 >
                 </RCTIJKPlayer>
                 <TouchableOpacity
-                onPress={this.showHideController.bind(this)}
-                style={[styles.controllerView]}
+                onPress = {this.showHideController.bind(this)}
+                style   = {[styles.controllerView]}
                 >
                 {this.getController()}
                 </TouchableOpacity>

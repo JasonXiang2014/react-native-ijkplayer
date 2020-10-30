@@ -2,41 +2,27 @@ package me.yiii.RCTIJKPlayer;
 
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.MediaController;
-import android.widget.TableLayout;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer;
-import tv.danmaku.ijk.media.player.AndroidMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
-import tv.danmaku.ijk.media.player.TextureMediaPlayer;
-import tv.danmaku.ijk.media.player.misc.IMediaFormat;
-import tv.danmaku.ijk.media.player.misc.ITrackInfo;
-import tv.danmaku.ijk.media.player.misc.IjkMediaFormat;
 
-import com.facebook.react.bridge.UiThreadUtil;
+
+
 
 public class IjkVideoView extends FrameLayout {
 // public class IjkVideoView extends FrameLayout implements MediaController.MediaPlayerControl {
@@ -53,6 +39,12 @@ public class IjkVideoView extends FrameLayout {
     private static final int STATE_PLAYING = 3;
     private static final int STATE_PAUSED = 4;
     private static final int STATE_PLAYBACK_COMPLETED = 5;
+    private String mPixelFormat = "";
+    private boolean mIsUsingMediaCodec;
+    private boolean mIsUsingMediaCodecAutoRotate;
+    private boolean mIsMediaCodecHandleResolutionChange;
+    private boolean mIsUsingOpenSLES;
+    private boolean mIsUsingMediaDataSource;
 
     // mCurrentState is a VideoView object's current state.
     // mTargetState is the state that a method caller intends to reach.
@@ -70,8 +62,12 @@ public class IjkVideoView extends FrameLayout {
     private int mSurfaceWidth;
     private int mSurfaceHeight;
     private int mVideoRotationDegree;
+    private int mLastDuration  = 0;
     private IMediaPlayer.OnCompletionListener mOnCompletionListener;
     private IMediaPlayer.OnPreparedListener mOnPreparedListener;
+
+    private VideoProgressListener mProgressListener;
+
     private int mCurrentBufferPercentage;
     private IMediaPlayer.OnErrorListener mOnErrorListener;
     private IMediaPlayer.OnInfoListener mOnInfoListener;
@@ -84,10 +80,12 @@ public class IjkVideoView extends FrameLayout {
     private IRenderView mRenderView;
     private int mVideoSarNum;
     private int mVideoSarDen;
+    private Context Icontext;
     RCTIJKPlayerView container;
 
     public IjkVideoView(Context context) {
         super(context);
+        Icontext = context;
         initVideoView(context);
     }
 
@@ -107,6 +105,10 @@ public class IjkVideoView extends FrameLayout {
         initVideoView(context);
     }
 
+    public void setProgressListener(VideoProgressListener listener) {
+        mProgressListener = listener;
+    }
+
     // REMOVED: onMeasure
     // REMOVED: onInitializeAccessibilityEvent
     // REMOVED: onInitializeAccessibilityNodeInfo
@@ -114,25 +116,33 @@ public class IjkVideoView extends FrameLayout {
 
     private void initVideoView(Context context) {
         mAppContext = context.getApplicationContext();
-        // mSettings = new Settings(mAppContext);
-        // mVideoWidth = 400;
-        // mVideoHeight = 300;
-        mVideoWidth = 0;
-        mVideoHeight = 0;
-
+        mVideoWidth = RCTIJKPlayerModule.videoWidth;
+        mVideoHeight = RCTIJKPlayerModule.videoHeight;
         initBackground();
         initRenders();
-
-        // mVideoWidth = 0;
-        // mVideoHeight = 0;
-        // REMOVED: getHolder().addCallback(mSHCallback);
-        // REMOVED: getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         setFocusable(true);
         setFocusableInTouchMode(true);
         requestFocus();
-        // REMOVED: mPendingSubtitleTracks = new Vector<Pair<InputStream, MediaFormat>>();
         mCurrentState = STATE_IDLE;
         mTargetState = STATE_IDLE;
+        _notifyMediaStatus();
+    }
+
+    private void reCreateVideoView() {
+        initBackground();
+        initRenders();
+        setFocusable(true);
+        setFocusableInTouchMode(true);
+        requestFocus();
+        mCurrentState = STATE_IDLE;
+        mTargetState = STATE_IDLE;
+        _notifyMediaStatus();
+    }
+
+    private void _notifyMediaStatus() {
+//        if (mOnInfoListener != null) {
+//            mOnInfoListener.onInfo(mMediaPlayer, mCurrentState, -1);
+//        }
     }
 
     public void setRenderView(IRenderView renderView) {
@@ -151,7 +161,6 @@ public class IjkVideoView extends FrameLayout {
 
         mRenderView = renderView;
         renderView.setAspectRatio(mCurrentAspectRatio);
-        Log.e(TAG, String.format("videosize setRenderView %d %d\n", mVideoWidth, mVideoHeight));
         if (mVideoWidth > 0 && mVideoHeight > 0)
             renderView.setVideoSize(mVideoWidth, mVideoHeight);
         if (mVideoSarNum > 0 && mVideoSarDen > 0)
@@ -164,7 +173,6 @@ public class IjkVideoView extends FrameLayout {
                 Gravity.CENTER);
         renderUIView.setLayoutParams(lp);
         addView(renderUIView);
-
         mRenderView.addRenderCallback(mSHCallback);
         mRenderView.setVideoRotation(mVideoRotationDegree);
     }
@@ -197,7 +205,8 @@ public class IjkVideoView extends FrameLayout {
         }
     }
 
-    public void setVideoPath(String path) {
+    public void setVideoPath(String path,int duration) {
+        mLastDuration = duration;
         setVideoURI(Uri.parse(path));
     }
 
@@ -212,18 +221,15 @@ public class IjkVideoView extends FrameLayout {
         openVideo();
         requestLayout();
         invalidate();
+        //seekTo(mLastDuration);
     }
 
-    // REMOVED: addSubtitleSource
-    // REMOVED: mPendingSubtitleTracks
 
     public void stopPlayback() {
         if (mMediaPlayer != null) {
             mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
-            // if (mHudViewHolder != null)
-            //     mHudViewHolder.setMediaPlayer(null);
             mCurrentState = STATE_IDLE;
             mTargetState = STATE_IDLE;
             AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
@@ -241,11 +247,12 @@ public class IjkVideoView extends FrameLayout {
         // called start() previously
         release(false);
 
+
         AudioManager am = (AudioManager) mAppContext.getSystemService(Context.AUDIO_SERVICE);
         am.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
 
         try {
-            mMediaPlayer = createPlayer();
+            mMediaPlayer = createPlayer(2);
 
             // TODO: create SubtitleController in MediaPlayer, but we need
             // a context for the subtitle renderers
@@ -269,13 +276,6 @@ public class IjkVideoView extends FrameLayout {
             mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mMediaPlayer.setScreenOnWhilePlaying(true);
             mMediaPlayer.prepareAsync();
-            // if (mHudViewHolder != null)
-            //     mHudViewHolder.setMediaPlayer(mMediaPlayer);
-
-            // REMOVED: mPendingSubtitleTracks
-
-            // we don't set the target state here either, but preserve the
-            // target state that was there before.
             mCurrentState = STATE_PREPARING;
             // attachMediaController();
         } catch (IOException ex) {
@@ -291,6 +291,7 @@ public class IjkVideoView extends FrameLayout {
         } finally {
             // REMOVED: mPendingSubtitleTracks.clear();
         }
+        //reCreateVideoView();
     }
 
     IMediaPlayer.OnVideoSizeChangedListener mSizeChangedListener =
@@ -309,7 +310,7 @@ public class IjkVideoView extends FrameLayout {
                         }
                         // REMOVED: getHolder().setFixedSize(mVideoWidth, mVideoHeight);
                         requestLayout();
-                        // refresh();
+//                         refresh();
                         // initRenders();
                     }
                 }
@@ -335,6 +336,8 @@ public class IjkVideoView extends FrameLayout {
             if (seekToPosition != 0) {
                 seekTo(seekToPosition);
             }
+
+
             if (mVideoWidth != 0 && mVideoHeight != 0) {
                 //Log.i("@@@@", "video size: " + mVideoWidth +"/"+ mVideoHeight);
                 // REMOVED: getHolder().setFixedSize(mVideoWidth, mVideoHeight);
@@ -342,6 +345,7 @@ public class IjkVideoView extends FrameLayout {
                     mRenderView.setVideoSize(mVideoWidth, mVideoHeight);
                     Log.e(TAG, String.format("videosize onPrepared setVideoSize %d %d\n", mVideoWidth, mVideoHeight));
                     mRenderView.setVideoSampleAspectRatio(mVideoSarNum, mVideoSarDen);
+
                     if (!mRenderView.shouldWaitForResize() || mSurfaceWidth == mVideoWidth && mSurfaceHeight == mVideoHeight) {
                         // We didn't actually change the size (it was already at the size
                         // we need), so we won't get a "surface changed" callback, so
@@ -372,6 +376,9 @@ public class IjkVideoView extends FrameLayout {
                     if (mOnCompletionListener != null) {
                         mOnCompletionListener.onCompletion(mMediaPlayer);
                     }
+
+                    onStatusChanged(200);
+
                 }
             };
 
@@ -381,6 +388,9 @@ public class IjkVideoView extends FrameLayout {
                     if (mOnInfoListener != null) {
                         mOnInfoListener.onInfo(mp, arg1, arg2);
                     }
+
+                    onStatusChanged(arg1);
+
                     switch (arg1) {
                         case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
                             Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
@@ -443,6 +453,8 @@ public class IjkVideoView extends FrameLayout {
                         }
                     }
 
+                    onStatusChanged(404);
+
                     /* Otherwise, pop up an error dialog so the user knows that
                      * something bad has happened. Only try and pop up the dialog
                      * if we're attached to a window. When we're going away and no
@@ -467,6 +479,16 @@ public class IjkVideoView extends FrameLayout {
      */
     public void setOnPreparedListener(IMediaPlayer.OnPreparedListener l) {
         mOnPreparedListener = l;
+    }
+
+    private void onStatusChanged(int status){
+        if(mProgressListener != null){
+            mProgressListener.onStatusChanged(status);
+        }
+//        WritableMap event = Arguments.createMap();
+//        event.putString("state", Integer.toString(status));
+//        ReactContext reactContext = (ReactContext) getContext();
+//        reactContext.getJSModule(RCTEventEmitter.class).receiveEvent(getId(), "onPlaybackStatu", event);
     }
 
     /**
@@ -521,7 +543,6 @@ public class IjkVideoView extends FrameLayout {
                 Log.e(TAG, "onSurfaceChanged: unmatched render callback\n");
                 return;
             }
-
             mSurfaceWidth = w;
             mSurfaceHeight = h;
             boolean isValidState = (mTargetState == STATE_PLAYING);
@@ -540,7 +561,6 @@ public class IjkVideoView extends FrameLayout {
                 Log.e(TAG, "onSurfaceCreated: unmatched render callback\n");
                 return;
             }
-
             mSurfaceHolder = holder;
             if (mMediaPlayer != null)
                 bindSurfaceHolder(mMediaPlayer, holder);
@@ -658,10 +678,13 @@ public class IjkVideoView extends FrameLayout {
             state = 2;
             break;
         case STATE_IDLE:
+            state = 0;
+            break;
         default:
             state = 0;
             break;
         }
+
         return state;
     }
 
@@ -722,17 +745,56 @@ public class IjkVideoView extends FrameLayout {
     public static final int RENDER_TEXTURE_VIEW = 2;
 
     private void initRenders() {
-        setRender(RENDER_TEXTURE_VIEW);
-
+        setRender(RENDER_SURFACE_VIEW);
     }
 
-    public IMediaPlayer createPlayer() {
+    public IMediaPlayer createPlayer(int playerType) {
         IMediaPlayer mediaPlayer = null;
         IjkMediaPlayer ijkMediaPlayer = null;
         if (mUri != null) {
             ijkMediaPlayer = new IjkMediaPlayer();
-            // ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
             ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_ERROR);
+
+//            if (mIsUsingMediaCodec) {
+//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
+//                if (mIsUsingMediaCodecAutoRotate) {
+//                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 1);
+//                } else {
+//                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-auto-rotate", 0);
+//                }
+//                if (mIsMediaCodecHandleResolutionChange) {
+//                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 1);
+//                } else {
+//                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-handle-resolution-change", 0);
+//                }
+//            } else {
+//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 0);
+//            }
+//
+//            if (mIsUsingOpenSLES) {
+//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 1);
+//            } else {
+//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 0);
+//            }
+//
+//            if (TextUtils.isEmpty(mPixelFormat)) {
+//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32);
+//            } else {
+//                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", mPixelFormat);
+//            }
+//            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1);
+//            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
+//
+//            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0);
+//
+//            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+//            ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
+//            //ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "dns_cache_clear", 1);
+//            //ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT,"safe",0);
+
+            if(mLastDuration > 0) {
+                ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "seek-at-start", mLastDuration);
+            }
 
             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 0);
             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32);
@@ -765,6 +827,8 @@ public class IjkVideoView extends FrameLayout {
             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0);
 
             ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+            //ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
+            //ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec-avc", 1);
         }
         mediaPlayer = ijkMediaPlayer;
 

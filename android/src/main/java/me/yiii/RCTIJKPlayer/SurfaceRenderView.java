@@ -30,6 +30,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.FrameLayout;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
@@ -39,7 +40,10 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.ISurfaceTextureHolder;
 
 public class SurfaceRenderView extends SurfaceView implements IRenderView {
+    private static final String TAG = "SurfaceRenderView";
     private MeasureHelper mMeasureHelper;
+
+    public static SurfaceHolder surfaceHolder;
 
     public SurfaceRenderView(Context context) {
         super(context);

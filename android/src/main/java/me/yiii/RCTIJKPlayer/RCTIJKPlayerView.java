@@ -6,13 +6,8 @@ package me.yiii.RCTIJKPlayer;
 
 import android.app.Activity;
 import android.content.Context;
-import android.os.Handler;
-import android.os.Message;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.SurfaceView;
-import android.view.View;
-import android.view.WindowManager;
 import android.widget.FrameLayout;
 
 import com.facebook.react.bridge.Arguments;
@@ -20,10 +15,13 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.events.RCTEventEmitter;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
-
-import java.util.LinkedList;
 
 public class RCTIJKPlayerView extends FrameLayout {
     private static final String TAG = "RCTIJKPlayerView";
@@ -32,36 +30,39 @@ public class RCTIJKPlayerView extends FrameLayout {
     private Activity activity = null;
     private FrameLayout framelayout;
     private IjkVideoView mIJKPlayerView;
+    private int _eventID;
+    private RCTEventEmitter mEventEmitter;
+    private Timer _timer;
+    private TimerTask _task;
 
+    //private RCTEventEmitter mEventEmitter;
     public IjkVideoView getPlayer() {
         return this.mIJKPlayerView;
     }
 
-    public RCTIJKPlayerView(Context context) {
+    public RCTIJKPlayerView(ThemedReactContext context) {
         super(context);
         this._context = context;
-        this.activity = ((ReactContext) getContext()).getCurrentActivity();
-        // framelayout = new FrameLayout(context);
-
+        _eventID = getId();
+        _timer = new Timer();
+        _task = getTask();
+        mEventEmitter = context.getJSModule(RCTEventEmitter.class);
         IjkMediaPlayer.loadLibrariesOnce(null);
         IjkMediaPlayer.native_profileBegin("libijkplayer.so");
-        mIJKPlayerView = new IjkVideoView(context);
-        // mIJKPlayerView.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT,
-        //         LayoutParams.WRAP_CONTENT));
+        if (mIJKPlayerView != null) {
+            return;
+        }
 
-        // framelayout.addView(mIJKPlayerView);
-
-        RCTIJKPlayer.getInstance().setIJKPlayerView(this);
-
-        // String mVideoPath = "http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/gear1/prog_index.m3u8";
-        // mVideoPath = "/Users/cong/Downloads/111.mov";
-
-        // mIJKPlayerView.setVideoPath(mVideoPath);
-        // mIJKPlayerView.start();
-
-        // addView(framelayout);
+        mIJKPlayerView = new IjkVideoView(this._context);
+        mIJKPlayerView.setProgressListener(new VideoProgressListener() {
+            @Override
+            public void onStatusChanged(int status) {
+                WritableMap event = Arguments.createMap();
+                event.putString("state", Integer.toString(status));
+                mEventEmitter.receiveEvent(_eventID, "onPlaybackStatu", event);
+            }
+        });
         addView(mIJKPlayerView);
-        // mIJKPlayerView.setContainer(this);
     }
 
     public void refresh() {
@@ -75,21 +76,6 @@ public class RCTIJKPlayerView extends FrameLayout {
 
     }
 
-    // @Override
-    // protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-    //     Log.e(TAG, String.format("this.getLeft(), this.getTop(), this.getRight(), this.getBottom() %d %d %d %d", this.getLeft(), this.getTop(), this.getRight(), this.getBottom()));
-    //     mIJKPlayerView.layout(this.getLeft(), this.getTop(), this.getRight(), this.getBottom());
-    //     this.postInvalidate(this.getLeft(), this.getTop(), this.getRight(), this.getBottom());
-    // }
-
-    // @Override
-    // public void onViewAdded(View child) {
-    //     Log.e(TAG, String.format("onViewAdded " + child));
-    //     if (this.framelayout == child) return;
-    //     this.removeView(this.framelayout);
-    //     this.addView(this.framelayout, 0);
-    // }
-
     private void sendEvent(int state) {
         Log.e(TAG, "sendEvent");
         ReactContext reactContext = (ReactContext) getContext();
@@ -101,16 +87,52 @@ public class RCTIJKPlayerView extends FrameLayout {
 
     }
 
-    public void start(final String URL) {
+    // 延深添加
+    public void begin(final String URL, final int duration,final int eventID) {
+        start(URL, duration, eventID);
+    }
+
+    public void start(final String URL, final int duration,final int eventID) {
         Log.e(TAG, String.format("start URL %s", URL));
         UiThreadUtil.runOnUiThread(new Runnable() {
             public void run() {
-                mIJKPlayerView.setVideoPath(URL);
+                _eventID = eventID;
+                mIJKPlayerView.setVideoPath(URL,duration);
                 mIJKPlayerView.start();
                 // RCTIJKPlayerView.this.invalidate();
-                // requestLayout();
+                // requestLayout()
+                 _task = getTask();
+                if(_timer == null){
+                    _timer = new Timer();
+                }
+                _timer.schedule(_task,0,1000);
             }
         });
+    }
+
+   private TimerTask getTask() {
+       TimerTask  task =  new TimerTask() {
+            @Override
+            public void run() {
+                int currentPlaybackTime = mIJKPlayerView.getCurrentPosition() / 1000;
+                int duration = mIJKPlayerView.getDuration() / 1000;
+                int bufferingProgress = mIJKPlayerView.getBufferPercentage();
+                int playbackState = mIJKPlayerView.CurrentState();
+
+                //ReactContext reactContext = (ReactContext) getContext();
+                WritableMap event = Arguments.createMap();
+                event.putString("currentPlaybackTime", Integer.toString(currentPlaybackTime));
+                event.putString("duration", Integer.toString(duration));
+                event.putString("playableDuration", "");
+                event.putString("bufferingProgress", Integer.toString(bufferingProgress));
+                event.putString("playbackState", Integer.toString(playbackState));
+                event.putString("loadState", "");
+                event.putString("isPreparedToPlay", "");
+
+                mEventEmitter.receiveEvent(_eventID, "onPlaybackInfo", event);
+            }
+        };
+       return task;
     }
 
     public void stop() {
@@ -136,6 +158,10 @@ public class RCTIJKPlayerView extends FrameLayout {
     public void shutdown() {
         Log.e(TAG, String.format("shutdown"));
         mIJKPlayerView.release(true);
+
+        if(_timer != null && _task != null){
+            _task.cancel();
+        }
     }
 
     public void seekTo(double currentPlaybackTime) {
