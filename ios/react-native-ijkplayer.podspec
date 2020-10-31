@@ -22,5 +22,6 @@ Pod::Spec.new do |s|
   s.frameworks = "AVFoundation", "CoreMedia", 'VideoToolbox', 'Accelerate', 'AudioToolbox', 'Foundation','GLKit'
   s.libraries = 'c++'
   s.dependency 'React'
+  s.vendored_frameworks = 'IJKMediaFramework.framework'
   # s.dependency 'IJKPlayerSDK'
 end
