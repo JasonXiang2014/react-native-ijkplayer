@@ -1,10 +1,10 @@
 # React Native Component for ijkplayer
 
-How to build Example
-```
-git clone https://github.com/king6cong/react-native-ijkplayer
-cd react-native-ijkplayer/Example
-npm install
+
+Install
+
+```sh
+npm install @newbanker/react-native-ijkplayer --save
 ```
 
 ### iOS
