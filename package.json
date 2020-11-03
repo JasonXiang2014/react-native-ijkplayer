@@ -4,7 +4,7 @@
     "type" : "git",
     "url" : "https://github.com/NewBanker/react-native-ijkplayer.git"
   },
-  "version": "0.4.4",
+  "version": "0.4.6",
   "description": "IJKPlayer for React Native.",
   "author": "suetming",
   "nativePackage": true,
