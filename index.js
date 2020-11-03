@@ -97,7 +97,7 @@ export default class RCTIJKPlayer extends Component {
     stop() {
         return this.setNativeProps({ stop: true })
     }
-
+    
     unMount() {
         if (ios) {
             this.setNativeProps({ unMount: true })

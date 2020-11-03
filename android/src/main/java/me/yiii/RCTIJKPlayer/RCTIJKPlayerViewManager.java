@@ -1,5 +1,7 @@
 package me.yiii.RCTIJKPlayer;
 
+import android.util.Log;
+
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.common.MapBuilder;
@@ -45,6 +47,7 @@ public class RCTIJKPlayerViewManager extends SimpleViewManager<RCTIJKPlayerView>
     public void setStart(final RCTIJKPlayerView videoView, final ReadableMap options) {
         final String URL = options.getString("url");
         final int  duration = options.getInt("seek");
+        Log.e("!!!!!", URL);
         UiThreadUtil.runOnUiThread(new Runnable() {
             public void run() {
                 videoView.start(URL,duration,videoView.getId());
@@ -55,6 +58,7 @@ public class RCTIJKPlayerViewManager extends SimpleViewManager<RCTIJKPlayerView>
     // 延深添加
     @ReactProp(name = "begin")
     public void setBegin(final RCTIJKPlayerView videoView, final ReadableMap options) {
+        Log.e("!!!!! 01", "begin");
         setStart(videoView, options);
     }
 
